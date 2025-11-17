@@ -1,3 +1,5 @@
+"use client";
+
 import { CarouselDemo } from "@/components/ui/Projects";
 import { StickyScrollRevealDemo } from "@/components/ui/Skills";
 import { SignupFormDemo } from "@/components/ui/Contact";
