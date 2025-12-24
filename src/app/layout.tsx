@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NavbarDemo } from "@/components/ui/NavbarDemo";
 import { HeroSectionOne } from "@/components/ui/HeroSectionOne";
-import About_Me from "@/components/ui/AboutMe";
+import About_Me from "@/components/ui/About_Me";
 import { ThemeProvider } from "next-themes";
 import FooterDemo from "@/components/ui/FooterDemo";
 

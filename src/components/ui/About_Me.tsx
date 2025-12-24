@@ -1,11 +1,11 @@
 "use client";
 import React from "react";
-import Image from "next/image";
+// import Image from "next/image";
 import { motion } from "framer-motion";
 
 const fadeInUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
 const fadeInLeft = { hidden: { opacity: 0, x: -60 }, visible: { opacity: 1, x: 0 } };
-const fadeInRight = { hidden: { opacity: 0, x: 60 }, visible: { opacity: 1, x: 0 } };
+// const fadeInRight = { hidden: { opacity: 0, x: 60 }, visible: { opacity: 1, x: 0 } };
 
 const About_Me = () => {
   return (
