@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-// import Image from "next/image";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 const fadeInUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
@@ -97,9 +97,11 @@ const About_Me = () => {
             ></motion.div>
 
             <div className="w-80 h-96 rounded-2xl overflow-hidden shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-2 transition-all duration-500 relative z-10">
-              <img
+              <Image
                 src="/image/pic2.jpg"
                 alt="My Picture"
+                width={320}
+                height={384}
                 className="w-full h-full object-cover"
               />
             </div>
