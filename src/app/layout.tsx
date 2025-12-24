@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NavbarDemo } from "@/components/ui/NavbarDemo";
 import { HeroSectionOne } from "@/components/ui/HeroSectionOne";
-import AboutMe from "@/components/ui/AboutMe";
+import About_Me from "@/components/ui/AboutMe";
 import { ThemeProvider } from "next-themes";
 import FooterDemo from "@/components/ui/FooterDemo";
 
@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem> 
           <NavbarDemo />
           <HeroSectionOne />
-          <AboutMe />
+          <About_Me />
           {children}
          <FooterDemo /> 
          </ThemeProvider> 
