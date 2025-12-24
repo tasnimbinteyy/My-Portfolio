@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
@@ -15,20 +15,6 @@ const skills = [
   { title: "Backend Development", description: "I build powerful server-side applications.", image: "/images/backend.png", level: 65 },
   { title: "Problem Solving", description: "I practice competitive programming and logical thinking.", image: "/images/problem-solving.png", level: 80 },
 ];
-
-// 🌌 Particle/blob generator
-const createParticles = (count) => {
-  const colors = ["rgba(255,255,255,0.08)", "rgba(0,0,0,0.08)"];
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 4 + 2,
-    delay: Math.random() * 5,
-    duration: Math.random() * 6 + 4,
-    color: colors[Math.floor(Math.random() * colors.length)],
-  }));
-};
 
 // Fade-in variants
 const containerVariants = {
@@ -46,17 +32,182 @@ const cardVariants = {
 };
 
 export function StickyScrollRevealDemo() {
-  const [layers] = useState([createParticles(8), createParticles(12), createParticles(15)]);
+  const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    setMounted(true);
+  }, []);
+
+  // 🌌 Particle/blob generator - শুধু ক্লায়েন্ট সাইডে এক্সিকিউট হবে
+  const particlesConfig = useMemo(() => {
+    if (!isClient) return { layers: [] };
+
+    const colors = ["rgba(255,255,255,0.08)", "rgba(0,0,0,0.08)"];
+    
+    const createParticles = (count) => {
+      return Array.from({ length: count }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 4 + 2,
+        delay: Math.random() * 5,
+        duration: Math.random() * 6 + 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      }));
+    };
+
+    return {
+      layers: [createParticles(8), createParticles(12), createParticles(15)],
+    };
+  }, [isClient]);
+
+  // প্রগ্রেস বার animation শুধু ক্লায়েন্টে দেখানো
+  const ProgressBar = ({ level }) => {
+    const [animatedLevel, setAnimatedLevel] = useState(0);
+    
+    useEffect(() => {
+      if (mounted) {
+        setTimeout(() => {
+          setAnimatedLevel(level);
+        }, 300);
+      }
+    }, [level, mounted]);
+
+    return (
+      <div className="mt-4 h-2 w-full bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden relative">
+        <motion.div
+          className="h-full rounded-full bg-gradient-to-r from-green-400 via-cyan-400 to-pink-400 bg-[length:200%_100%]"
+          initial={{ width: 0 }}
+          animate={{ width: `${animatedLevel}%` }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+          style={{ backgroundSize: "200% 100%" }}
+        />
+      </div>
+    );
+  };
+
+  // Floating Blob Component - শুধু ক্লায়েন্টে রেন্ডার হবে
+  const FloatingBlobs = () => {
+    if (!isClient || !particlesConfig.layers.length) return null;
+
+    return (
+      <>
+        {particlesConfig.layers.map((particles, layerIndex) =>
+          particles.map((p) => (
+            <motion.div
+              key={`${layerIndex}-${p.id}`}
+              className="absolute rounded-full"
+              initial={{
+                width: `${p.size * (1 + layerIndex * 0.5)}px`,
+                height: `${p.size * (1 + layerIndex * 0.5)}px`,
+                top: `${p.y}%`,
+                left: `${p.x}%`,
+                background: p.color,
+                filter: "blur(3px)",
+              }}
+              animate={{
+                y: [0, -10 - layerIndex * 3, 0],
+                x: [0, 3 + layerIndex * 1.5, -3 - layerIndex * 1.5, 0],
+                opacity: [0.2, 0.6, 0.2],
+                scale: [1, 1.1, 1],
+              }}
+              transition={{
+                repeat: Infinity,
+                duration: p.duration,
+                delay: p.delay,
+                ease: "easeInOut",
+              }}
+            />
+          ))
+        )}
+      </>
+    );
+  };
+
+  // সার্ভার সাইডে শুধু basic structure রেন্ডার করবে
+  if (!isClient) {
+    return (
+      <section
+        id="Skills"
+        className="relative w-full py-20 px-6 text-gray-900 dark:text-white overflow-hidden transition-colors duration-500"
+      >
+        {/* Static background without animations */}
+        <div className="absolute inset-0 backdrop-blur-md"></div>
+        
+        {/* Static light effects */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            background: `radial-gradient(circle at 50% 50%, rgba(0,150,255,0.08), transparent 70%)`,
+            borderRadius: "50%",
+            filter: "blur(120px)",
+            width: "400px",
+            height: "400px",
+            top: "20%",
+            left: "30%",
+            mixBlendMode: "screen",
+            opacity: 0.3
+          }}
+        />
+        
+        <div className="relative max-w-6xl mx-auto text-center mb-12 z-10">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+            My Skills
+          </h1>
+          <p className="text-gray-700 dark:text-gray-200 text-lg">
+            Technologies I use to build modern and interactive solutions ✨
+          </p>
+        </div>
+
+        <div className="relative max-w-6xl mx-auto grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 z-10">
+          {skills.map((skill, index) => (
+            <div
+              key={index}
+              className="relative rounded-2xl overflow-hidden cursor-pointer w-full"
+            >
+              <div className="bg-gradient-to-b from-black/30 to-gray-800/30 dark:from-black/50 dark:to-gray-700/50 backdrop-blur-xl w-full h-full rounded-2xl">
+                <div className="relative w-full h-48 md:h-56 lg:h-60">
+                  <Image
+                    src={skill.image}
+                    alt={skill.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+
+                <div className="p-6">
+                  <h2 className="text-2xl font-semibold mb-2 bg-gradient-to-r from-blue-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent">
+                    {skill.title}
+                  </h2>
+                  <p className="text-gray-200 dark:text-gray-300 text-sm leading-relaxed">
+                    {skill.description}
+                  </p>
+                  <div className="mt-4 h-2 w-full bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden relative">
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-green-400 via-cyan-400 to-pink-400"
+                      style={{ width: `${skill.level}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
       id="Skills"
       className="relative w-full py-20 px-6 text-gray-900 dark:text-white overflow-hidden transition-colors duration-500"
     >
-      {/* Dripping Fluid Effect */}
+      {/* Dripping Fluid Effect - শুধু ক্লায়েন্টে */}
       <motion.div
         className="absolute inset-0 z-0"
-        style={{
+        initial={{
           background: `radial-gradient(circle at 50% 50%, rgba(0,150,255,0.08), transparent 70%)`,
           borderRadius: "50%",
           filter: "blur(120px)",
@@ -83,58 +234,28 @@ export function StickyScrollRevealDemo() {
       {/* Lamp/Glow background */}
       <motion.div
         className="absolute inset-0 z-0"
-        animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.02, 1] }}
-        transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
-        style={{
+        initial={{
           background: `radial-gradient(circle at 50% 50%, rgba(255, 255, 200, 0.15), transparent 60%)`,
           filter: "blur(100px)",
-          willChange: "transform, opacity",
         }}
+        animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.02, 1] }}
+        transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
       />
       <motion.div
         className="absolute inset-0 z-0"
-        animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.015, 1] }}
-        transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
-        style={{
+        initial={{
           background: `radial-gradient(circle at 30% 70%, rgba(255, 180, 150, 0.12), transparent 70%)`,
           filter: "blur(80px)",
-          willChange: "transform, opacity",
         }}
+        animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.015, 1] }}
+        transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
       />
 
       {/* Background blur */}
       <div className="absolute inset-0 backdrop-blur-md"></div>
 
-      {/* Floating blobs */}
-      {layers.map((particles, layerIndex) =>
-        particles.map((p) => (
-          <motion.div
-            key={`${layerIndex}-${p.id}`}
-            className="absolute rounded-full"
-            style={{
-              width: `${p.size * (1 + layerIndex * 0.5)}px`,
-              height: `${p.size * (1 + layerIndex * 0.5)}px`,
-              top: `${p.y}%`,
-              left: `${p.x}%`,
-              background: p.color,
-              filter: "blur(3px)",
-              willChange: "transform, opacity",
-            }}
-            animate={{
-              y: [0, -10 - layerIndex * 3, 0],
-              x: [0, 3 + layerIndex * 1.5, -3 - layerIndex * 1.5, 0],
-              opacity: [0.2, 0.6, 0.2],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              repeat: Infinity,
-              duration: p.duration,
-              delay: p.delay,
-              ease: "easeInOut",
-            }}
-          />
-        ))
-      )}
+      {/* Floating blobs - শুধু ক্লায়েন্টে */}
+      <FloatingBlobs />
 
       {/* Header */}
       <motion.div
@@ -197,8 +318,9 @@ export function StickyScrollRevealDemo() {
                   className="text-2xl font-semibold mb-2 bg-gradient-to-r from-blue-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent"
                   animate={{
                     backgroundPosition: ["0% 0%", "100% 0%"],
-                    transition: { repeat: Infinity, duration: 3, ease: "linear" },
                   }}
+                  transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+                  style={{ backgroundSize: "200% 100%" }}
                 >
                   {skill.title}
                 </motion.h2>
@@ -208,26 +330,15 @@ export function StickyScrollRevealDemo() {
                   className="text-gray-200 dark:text-gray-300 text-sm leading-relaxed bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-300 bg-clip-text text-transparent"
                   animate={{
                     backgroundPosition: ["0% 0%", "100% 0%"],
-                    transition: { repeat: Infinity, duration: 4, ease: "linear" },
                   }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                  style={{ backgroundSize: "200% 100%" }}
                 >
                   {skill.description}
                 </motion.p>
 
                 {/* Gradient Progress Bar */}
-                <div className="mt-4 h-2 w-full bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden relative">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-green-400 via-cyan-400 to-pink-400 bg-[length:200%_100%]"
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${skill.level}%` }}
-                    transition={{ duration: 1.5, ease: "easeInOut" }}
-                    style={{ backgroundSize: "200% 100%" }}
-                    animate={{
-                      backgroundPosition: ["0% 0%", "100% 0%"],
-                      transition: { repeat: Infinity, duration: 2, ease: "linear" },
-                    }}
-                  />
-                </div>
+                <ProgressBar level={skill.level} />
               </div>
             </div>
           </motion.div>
